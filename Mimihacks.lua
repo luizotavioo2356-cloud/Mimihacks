@@ -1,4 +1,4 @@
--- SISTEMA MIMIHACKS COMPLETO (Anti-Fling, God Void, TP Tool, Shift Lock, Inventário Extra, Mola & Persistência Pública)
+-- SISTEMA MIMIHACKS COMPLETO (Anti-Fling, God Void, TP Tool, Shift Lock, Inventário Extra, Mola, Animação & Persistência Pública)
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -141,7 +141,7 @@ local function criarScrollContainer()
 	scroll.BackgroundTransparency = 1
 	scroll.Position = UDim2.new(0, 0, 0, 78)
 	scroll.Size = UDim2.new(1, 0, 1, -78)
-	scroll.CanvasSize = UDim2.new(0, 0, 0, 650)
+	scroll.CanvasSize = UDim2.new(0, 0, 0, 700)
 	scroll.ScrollBarThickness = 4
 	scroll.Visible = false
 	
@@ -199,6 +199,7 @@ end
 local GodModeBtn = criarBotao(ScrollPrincipal, "GodModeBtn", "God Mode: OFF", Color3.fromRGB(180, 40, 40))
 local GodModeUltraBtn = criarBotao(ScrollPrincipal, "GodModeUltraBtn", "God Ultra: OFF", Color3.fromRGB(100, 10, 10))
 local AntiFlingBtn = criarBotao(ScrollPrincipal, "AntiFlingBtn", "Anti-Fling: OFF", Color3.fromRGB(40, 100, 140))
+local AnimacaoBtn = criarBotao(ScrollPrincipal, "AnimacaoBtn", "Animações / Emotes", Color3.fromRGB(140, 100, 40))
 local TpToolBtn = criarBotao(ScrollPrincipal, "TpToolBtn", "Dar TP Tool", Color3.fromRGB(40, 140, 180))
 local SpeedInput = criarCampoTexto(ScrollPrincipal, "SpeedInput", "Velocidade (Ex: 50)")
 local SpeedBtn = criarBotao(ScrollPrincipal, "SpeedBtn", "Forçar Speed: OFF", Color3.fromRGB(40, 40, 180))
@@ -315,7 +316,7 @@ ToggleButton.MouseButton1Click:Connect(function()
 	end
 end)
 
--- AURA NORMAL & ULTRA PÚBLICA (Visível para todos no servidor)
+-- AURAS E GOD MODE
 local function aplicarAuraNormal(character)
 	if character:FindFirstChild("AuraPadraoMimi") then character.AuraPadraoMimi:Destroy() end
 	local forceField = Instance.new("ForceField")
@@ -349,6 +350,20 @@ local function aplicarAuraUltraPreta(character)
 		particles.Speed = NumberRange.new(6, 12)
 		particles.Parent = partRaiz
 	end
+end
+
+local function blindarHumanoide(hum)
+	if conexaoGodHealth then conexaoGodHealth:Disconnect() end
+	if not hum then return end
+	hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+	conexaoGodHealth = hum.HealthChanged:Connect(function(novoHealth)
+		if godNormal then
+			if novoHealth < hum.MaxHealth then
+				hum.Health = hum.MaxHealth
+			end
+		end
+	end)
+	hum.Health = hum.MaxHealth
 end
 
 -- ANTI-FLING
@@ -390,23 +405,11 @@ GodModeBtn.MouseButton1Click:Connect(function()
 	if godNormal then
 		GodModeBtn.BackgroundColor3 = Color3.fromRGB(40, 150, 40)
 		GodModeBtn.Text = "God Mode: ON"
-		if LocalPlayer.Character then aplicarAuraNormal(LocalPlayer.Character) end
-		
-		local function blindarHumanoide(hum)
-			if conexaoGodHealth then conexaoGodHealth:Disconnect() end
-			hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-			conexaoGodHealth = hum.HealthChanged:Connect(function(novoHealth)
-				if godNormal then
-					if novoHealth < hum.MaxHealth then
-						hum.Health = hum.MaxHealth
-					end
-				end
-			end)
-			hum.Health = hum.MaxHealth
-		end
-		
-		if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-			blindarHumanoide(LocalPlayer.Character.Humanoid)
+		if LocalPlayer.Character then
+			aplicarAuraNormal(LocalPlayer.Character)
+			if LocalPlayer.Character:FindFirstChild("Humanoid") then
+				blindarHumanoide(LocalPlayer.Character.Humanoid)
+			end
 		end
 		
 		task.spawn(function()
@@ -469,6 +472,18 @@ GodModeUltraBtn.MouseButton1Click:Connect(function()
 			if hrp and hrp:FindFirstChild("RaiosUltraPretos") then hrp.RaiosUltraPretos:Destroy() end
 		end
 	end
+end)
+
+-- BOTÃO DE ANIMAÇÕES / EMOTES
+AnimacaoBtn.MouseButton1Click:Connect(function()
+	pcall(function()
+		loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-7yd7-Emote-Animation-Script-UGC-140678"))()
+	end)
+	AnimacaoBtn.BackgroundColor3 = Color3.fromRGB(40, 180, 40)
+	AnimacaoBtn.Text = "Animação Executada!"
+	task.wait(1.5)
+	AnimacaoBtn.BackgroundColor3 = Color3.fromRGB(140, 100, 40)
+	AnimacaoBtn.Text = "Animações / Emotes"
 end)
 
 -- BOTÃO DE TP TOOL
@@ -1397,7 +1412,7 @@ InventarioExtraBtn.MouseButton1Click:Connect(function()
 	InventarioExtraBtn.Text = "Inventário Extra"
 end)
 
--- BOTÃO MOLA (Executa o loadstring correto da mola)
+-- BOTÃO MOLA
 MolaBtn.MouseButton1Click:Connect(function()
 	pcall(function()
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/ECCSco/ECCS-V3/main/Coils"))()
@@ -1438,7 +1453,6 @@ RunService.RenderStepped:Connect(function()
 	for _, p in pairs(Players:GetPlayers()) do
 		if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") then
 			local char = p.Character
-			local hrp = char.HumanoidRootPart
 			local hum = char.Humanoid
 			
 			if espBoxAtivo then
@@ -1655,9 +1669,21 @@ CorRgbBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- RESPAWN
+-- PERSISTÊNCIA APÓS RESPAWN (REINÍCIO DO PERSONAGEM)
 LocalPlayer.CharacterAdded:Connect(function(character)
-	task.wait(0.6)
+	task.wait(0.5)
+	local hum = character:WaitForChild("Humanoid", 3)
+	
+	if godNormal then
+		aplicarAuraNormal(character)
+		if hum then blindarHumanoide(hum) end
+	end
+	
+	if godUltra then
+		aplicarAuraUltraPreta(character)
+		if hum then hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false) end
+	end
+	
 	if shiftLockAtivo and not PlayerGui:FindFirstChild("MimiShiftLockGui") then
 		shiftLockGui.Parent = PlayerGui
 		shiftLockGui.Enabled = true
